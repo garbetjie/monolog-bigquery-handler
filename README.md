@@ -47,7 +47,7 @@ $logger->debug('message 5');
 
 ## Creating a table
 
-Currently, the handler requires a specific structure. The command below can be used to quickly and easily create this structure::
+Currently, the handler requires a specific structure. The command below can be used to quickly and easily create this structure:
 
 ```bash
 bq mk "$dataset.$table" --schema="channel:string:required,message:string,level:integer,level_name:string,context:string,extra:string,logged_at:timestamp" --time_partitioning_field="logged_at"

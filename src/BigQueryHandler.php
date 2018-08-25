@@ -144,8 +144,8 @@ class BigQueryHandler extends AbstractProcessingHandler
                 $record[$key] = $value->format('Y-m-d H:i:s.uP');
             }
 
-            if ($value instanceof \Closure) {
-                $record[$key] = $value();
+            if (\is_callable($value)) {
+                $record[$key] = \call_user_func($value);
             }
         }
 

@@ -9,7 +9,14 @@
             "email": "geoff@garbers.co.za"
         }
     ],
+    "autoload": {
+        "psr-4": {
+            "Garbetjie\\Monolog\\Handler\\": "src"
+        }
+    },
     "require": {
+        "php": ">=7.0",
+        "ext-json": "*",
         "monolog/monolog": "^1.23",
         "google/cloud-bigquery": "^1.4"
     }

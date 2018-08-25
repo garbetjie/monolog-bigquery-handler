@@ -2,6 +2,8 @@
     "name": "garbetjie/monolog-bigquery-handler",
     "description": "A configurable Monolog handler for writing logs to BigQuery.",
     "type": "library",
+    "homepage": "https://github.com/garbetjie/monolog-bigquery-handler",
+    "keywords": ["monolog", "bigquery", "logging", "log"],
     "license": "MIT",
     "authors": [
         {

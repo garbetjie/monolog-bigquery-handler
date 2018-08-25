@@ -1,0 +1,16 @@
+{
+    "name": "garbetjie/monolog-bigquery-handler",
+    "description": "A configurable Monolog handler for writing logs to BigQuery.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Geoff Garbers",
+            "email": "geoff@garbers.co.za"
+        }
+    ],
+    "require": {
+        "monolog/monolog": "^1.23",
+        "google/cloud-bigquery": "^1.4"
+    }
+}

@@ -10,11 +10,6 @@ use Monolog\Logger;
 class BigQueryHandler extends AbstractProcessingHandler
 {
     /**
-     * @var BigQueryClient
-     */
-    private $client;
-
-    /**
      * @var Table
      */
     private $table;
@@ -30,6 +25,11 @@ class BigQueryHandler extends AbstractProcessingHandler
     private $customFields = [];
 
     /**
+     * @var array
+     */
+    private $fieldMapping = [];
+
+    /**
      * BigQueryHandler constructor.
      *
      * @param BigQueryClient $bigQueryClient
@@ -42,7 +42,6 @@ class BigQueryHandler extends AbstractProcessingHandler
     {
         parent::__construct($level, $bubble);
 
-        $this->client = $bigQueryClient;
         $this->table = $bigQueryClient->dataset($dataSetName)->table($tableName);
     }
 
@@ -81,6 +80,16 @@ class BigQueryHandler extends AbstractProcessingHandler
     }
 
     /**
+     * Sets the mapping of source => destination fields when inserting into BigQuery.
+     *
+     * @param array $mapping
+     */
+    public function setFieldMapping(array $mapping)
+    {
+        $this->fieldMapping = $mapping;
+    }
+
+    /**
      * @param array $record
      * @return bool
      */
@@ -115,40 +124,58 @@ class BigQueryHandler extends AbstractProcessingHandler
      */
     public function handleBatch(array $records)
     {
-        $records = \array_map(
-            function(array $record) {
-                $customFields = $this->prepareRecordValues($this->customFields);
-
-                return [
-                    'data' => [
-                        'channel' => $record['channel'],
-                        'message' => $record['message'],
-                        'level' => $record['level'],
-                        'level_name' => $record['level_name'],
-                        'context' => \json_encode($this->prepareRecordValues($record['context']) ?: new \stdClass()),
-                        'extra' => \json_encode($this->prepareRecordValues($record['extra']) ?: new \stdClass()),
-                        'logged_at' => $record['datetime']->format('Y-m-d H:i:s.uP')
-                    ] + $customFields
-                ];
-            },
-            $records
+        $this->table->insertRows(
+            \array_map(
+                function($record) {
+                    return ['data' => $this->buildRecord($record)];
+                },
+                $records
+            )
         );
-
-        $this->table->insertRows($records);
     }
 
-    private function prepareRecordValues(array $record): array
+    /**
+     * Builds the record to be logged.
+     *
+     * @param array $record
+     * @return array
+     */
+    private function buildRecord(array $record): array
     {
+        $built = [];
+
+        foreach ($this->customFields as $key => $value) {
+            $built[$key] = $this->formatValue($value);
+        }
+
         foreach ($record as $key => $value) {
-            if ($value instanceof \DateTimeInterface) {
-                $record[$key] = $value->format('Y-m-d H:i:s.uP');
+            if ($key === 'formatted') {
+                continue;
             }
 
-            if (\is_callable($value)) {
-                $record[$key] = \call_user_func($value);
+            $destinationKey = $this->fieldMapping[$key] ?? $key;
+            $built[$destinationKey] = $this->formatValue($value);
+
+            if ($key === 'extra' || $key === 'context') {
+                $built[$destinationKey] = json_encode($built[$destinationKey] ?: new \stdClass());
             }
         }
 
-        return $record;
+        return $built;
+    }
+
+    /**
+     * Formats the given value into something that can be logged easily.
+     *
+     * @param mixed $value
+     * @return mixed|string
+     */
+    private function formatValue($value)
+    {
+        if (\is_callable($value)) {
+            return \call_user_func($value);
+        }
+
+        return $value;
     }
 }

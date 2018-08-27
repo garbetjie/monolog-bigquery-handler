@@ -77,4 +77,17 @@ $handler->removeCustomField('field_name');
 Custom field values can be any scalar value that can be JSON encoded, or one of the following values:
 
 * __`callable`:__ Any `callable` can be passed, and it will be executed before the log record is sent to BigQuery.
-* __`instanceof DateTimeInterface`:__ Instances of this interface are converted to a string using the date format of `Y-m-d H:i:s.uP`.
+
+### Mapping fields
+
+By default, the field names to insert to are the same as the [structure of a log record](https://github.com/Seldaek/monolog/blob/334b8d8783a1262c3b8311d6599889d82e9cc58c/doc/message-structure.md).
+However, if you have BigQuery column names that aren't the same as these, you can map the log record field names to your
+own column names:
+
+```php
+$bigQueryClient = new Google\Cloud\BigQuery\BigQueryClient();
+$handler = new Garbetjie\Monolog\Handler\BigQueryHandler($bigQueryClient, 'dataset_name', 'table_name', $level = Logger::DEBUG, $bubble = true);
+$handler->setFieldMapping(['datetime' => 'logged_at']);  // The `datetime` log record field will now be saved to the `logged_at` column.
+
+$logger->debug('message 1');
+```

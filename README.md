@@ -20,7 +20,7 @@ You can run the following command (using the BigQuery command line tool) to crea
 accept log records (replace `$dataset` and `$table` with the actual dataset and table names):
 
 ```bash
-bq mk "$dataset.$table" --schema="channel:string:required,message:string,level:integer,level_name:string,context:string,extra:string,logged_at:timestamp" --time_partitioning_field="logged_at"
+bq mk --schema="channel:string,message:string,level:integer,level_name:string,context:string,extra:string,datetime:timestamp" --time_partitioning_field="datetime" "$dataset.$table"
 ```
 
 ## Usage

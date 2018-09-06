@@ -156,8 +156,16 @@ class BigQueryHandler extends AbstractProcessingHandler
             $destinationKey = $this->fieldMapping[$key] ?? $key;
             $built[$destinationKey] = $this->formatValue($value);
 
-            if ($key === 'extra' || $key === 'context') {
-                $built[$destinationKey] = json_encode($built[$destinationKey] ?: new \stdClass());
+            switch($key) {
+                case 'extra':
+                case 'context':
+                    $built[$destinationKey] = json_encode($built[$destinationKey] ?: new \stdClass());
+                    break;
+
+                case 'datetime':
+                    // BigQuery expects timestamps to be in UTC.
+                    $built[$destinationKey]->setTimeZone(new \DateTimeZone('UTC'));
+                    break;
             }
         }
 
@@ -174,6 +182,11 @@ class BigQueryHandler extends AbstractProcessingHandler
     {
         if (\is_callable($value)) {
             return \call_user_func($value);
+        }
+
+        // If a \DateTime instance, should be converted to a string.
+        if ($value instanceof \DateTimeInterface) {
+            return $value->format('Y-m-d\TH:i:s.u');
         }
 
         return $value;

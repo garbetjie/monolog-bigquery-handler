@@ -153,20 +153,20 @@ class BigQueryHandler extends AbstractProcessingHandler
                 continue;
             }
 
-            $destinationKey = $this->fieldMapping[$key] ?? $key;
-            $built[$destinationKey] = $this->formatValue($value);
-
             switch($key) {
                 case 'extra':
                 case 'context':
-                    $built[$destinationKey] = json_encode($built[$destinationKey] ?: new \stdClass());
+                    $value = json_encode($value ?: new \stdClass());
                     break;
 
                 case 'datetime':
                     // BigQuery expects timestamps to be in UTC.
-                    $built[$destinationKey]->setTimeZone(new \DateTimeZone('UTC'));
+                    $value->setTimeZone(new \DateTimeZone('UTC'));
                     break;
             }
+
+            $destinationKey = $this->fieldMapping[$key] ?? $key;
+            $built[$destinationKey] = $this->formatValue($value);
         }
 
         return $built;
